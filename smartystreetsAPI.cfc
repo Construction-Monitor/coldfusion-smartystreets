@@ -12,6 +12,8 @@ component hint="https://smartystreets.com/docs/cloud/best-practices"{
 		variables.zipcodeAPI = {endpoint="https://us-zipcode.api.smartystreets.com/lookup",host="us-zipcode.api.smartystreets.com"};
 		//Fuzzy validation for oddly formatted addresses
 		variables.extractAPI = {endpoint="https://us-extract.api.smartystreets.com",host="us-extract.api.smartystreets.com"};
+		//Download Zipcode Latest API
+		variables.downloadZipcodeAPI = {endpoint="https://download.api.smartystreets.com/addons/zipcodes/latest.zip",host=""}
 		return this;
 	}
 
@@ -24,7 +26,9 @@ component hint="https://smartystreets.com/docs/cloud/best-practices"{
 		httpRequestObject.addParam(type="URL",name="auth-id",value=variables.authid);
 		httpRequestObject.addParam(type="URL",name="auth-token",value=variables.authtoken);
 		httpRequestObject.addParam(type="header",name="Content-Type",value="application/json");
-		httpRequestObject.addParam(type="header",name="Host",value=endpoint.host);
+		if(len(endpoint.host)){
+			httpRequestObject.addParam(type="header",name="Host",value=endpoint.host);
+		}
 		return httpRequestObject;
 	}
 	
@@ -40,7 +44,7 @@ component hint="https://smartystreets.com/docs/cloud/best-practices"{
 		for(var key in httpResponse){
 			structInsert(newHttpResponse,key,httpResponse[key],true);
 		}
-		if(structKeyExists(newHttpResponse,"Filecontent") && isJSON(trim(newHttpResponse.filecontent))){
+		if(structKeyExists(newHttpResponse,"Filecontent") && isSimpleValue(newHttpResponse.filecontent) &&  isJSON(trim(newHttpResponse.filecontent))){
 			var fileContent = deserializeJSON(newHttpResponse.fileContent);
 			structInsert(newHttpResponse, "Filecontent", fileContent, true);
 		}
@@ -83,6 +87,15 @@ component hint="https://smartystreets.com/docs/cloud/best-practices"{
 			}
 		}
 		return sendHTTPrequest(httpRequestObject);
+	}
+
+	function downloadZipCodeLatest() hint="https://account.smartystreets.com/##tools" {
+		var httpRequestObject = buildHTTPRequest(variables.downloadZipcodeAPI);
+		httpRequestObject.setgetasbinary("yes");
+		return sendHTTPrequest(httpRequestObject);
+		//To access Zip object
+		//response = smartyStreetsAPI.downloadZipCodeLatest().Filecontent;
+		//fileWrite("C:\path\to\write\test.zip",response);
 	}
 	
 }
